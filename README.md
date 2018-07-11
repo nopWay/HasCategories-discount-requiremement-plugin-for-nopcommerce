@@ -1,5 +1,10 @@
 # nopCommerce "Has categories" discount requirement plugin
-With this nopCommerce plugin, you can create discount requirements that checks the total quantity of products in selected categories against a predefined range. For example, you can select 2 categories (let's say Category A and B) and set minimum and maximum quantities to 3 and 5 respectively. In this case, discount will be applied if customer's cart contains any products belonging any of these categories with a total quantity of 3, 4 or 5, so to get this discount a customer can buy 3 pieces of products in Category A or 2 pieces of prodcuts in Category A and 1 piece of product in Category B. By this way, it's really easy to create discounts like
+With this nopCommerce plugin, you can create discount requirements that checks the total quantity of products in selected categories against a predefined range. For example, you can select 2 categories (let's say Category A and B) and set minimum and maximum quantities to 3 and 5 respectively. In this case, discount will be applied if customer's cart contains any products belonging any of these categories with a total quantity of 3, 4 or 5, so to get this discount a customer can buy 
+
+* 3 pieces of products in Category A or 
+* 2 pieces of prodcuts in Category A and 1 piece of product in Category B
+
+By this way, it's really easy to create discounts like
 
 * Buy X of products in these categories and get Y free
 * Buy X of products in these categories and get Y% discount
