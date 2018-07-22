@@ -6,4 +6,4 @@ SupportedVersions: 3.90
 Author: nopWay
 DisplayOrder: 1
 FileName: Nop.Plugin.DiscountRules.HasCategories.dll
-Description: This plugin allows you to add a discount requirement that checks total quantity of products in selected categories against predefined min and max quantity values.
+Description: This plugin allows you to add a discount requirement that checks total quantity of products in selected categories against predefined min and max quantity values
