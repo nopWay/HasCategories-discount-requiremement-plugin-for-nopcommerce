@@ -30,7 +30,6 @@ namespace Nop.Plugin.DiscountRules.HasCategories.Models
             }
 
             [NopResourceDisplayName("Admin.Catalog.Categories.List.SearchCategoryName")]
-            [AllowHtml]
             public string SearchCategoryName { get; set; }
             [NopResourceDisplayName("Admin.Catalog.Categories.List.SearchStore")]
             public int SearchStoreId { get; set; }
