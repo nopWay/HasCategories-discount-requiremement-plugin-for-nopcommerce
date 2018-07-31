@@ -28,6 +28,21 @@ namespace Nop.Plugin.DiscountRules.HasCategories
                 new { controller = "DiscountRulesHasCategories", action = "CategorySelectedPopupList" },
                 new[] { "Nop.Plugin.DiscountRules.HasCategories.Controllers" }
             );
+            routes.MapRoute("Plugin.DiscountRules.HasCategories.ProductExcludePopup",
+                 "Plugins/DiscountRulesHasCategories/ProductExcludePopup",
+                 new { controller = "DiscountRulesHasCategories", action = "ProductExcludePopup" },
+                 new[] { "Nop.Plugin.DiscountRules.HasCategories.Controllers" }
+            );
+            routes.MapRoute("Plugin.DiscountRules.HasCategories.ProductExcludePopupList",
+                 "Plugins/DiscountRulesHasCategories/ProductExcludePopupList",
+                 new { controller = "DiscountRulesHasCategories", action = "ProductExcludePopupList" },
+                 new[] { "Nop.Plugin.DiscountRules.HasCategories.Controllers" }
+            );
+            routes.MapRoute("Plugin.DiscountRules.HasCategories.ProductExcludedPopupList",
+                "Plugins/DiscountRulesHasCategories/ProductExcludedPopupList",
+                new { controller = "DiscountRulesHasCategories", action = "ProductExcludedPopupList" },
+                new[] { "Nop.Plugin.DiscountRules.HasCategories.Controllers" }
+            );
         }
         public int Priority
         {
