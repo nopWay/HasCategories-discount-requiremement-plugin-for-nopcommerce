@@ -6,7 +6,7 @@
     <Company></Company> 
     <Authors>nopWay</Authors> 
     <Version>1.00</Version> 
-    <Description>This plugin allows you to integrate with Assist payment module</Description> 
+    <Description>This plugin allows you to add a discount requirement that checks total quantity of products in selected categories against predefined min and max quantity values</Description> 
     <PackageLicenseUrl>https://github.com/nopWay/HasCategories-discount-requiremement-plugin-for-nopcommerce/blob/master/LICENSE</PackageLicenseUrl> 
     <PackageProjectUrl>https://github.com/nopWay</PackageProjectUrl> 
     <RepositoryUrl>https://github.com/nopWay/HasCategories-discount-requiremement-plugin-for-nopcommerce</RepositoryUrl> 
@@ -14,9 +14,11 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <None Remove="logo.png" />
     <None Remove="plugin.json" />
     <None Remove="Views\CategoryAddPopup.cshtml" />
     <None Remove="Views\Configure.cshtml" />
+    <None Remove="Views\ProductExcludePopup.cshtml" />
   </ItemGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -30,6 +32,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="plugin.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -39,6 +44,9 @@
     <Content Include="Views\CategoryAddPopup.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Views\ProductExcludePopup.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Views\_ViewImports.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>    
@@ -46,15 +54,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Presentation\Nop.Web.Framework\Nop.Web.Framework.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="logo.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Views\ProductExcludePopup.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   
   <!-- This target execute after "Build" target -->
