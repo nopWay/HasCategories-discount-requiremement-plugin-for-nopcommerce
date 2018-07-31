@@ -176,12 +176,11 @@ namespace Nop.Plugin.DiscountRules.HasCategories.Controllers
             return Json(GetCategoryGridModel(categories));
         }
 
-        public ActionResult ProductExcludePopup()
+        public ActionResult ProductExcludePopup(string selectedCategoryIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
                 return Content("Access denied");
 
-            var selectedCategoryIds = (HttpContext.Request.QueryString["selectedCategoryIds"] ?? String.Empty).ToString();
             if (string.IsNullOrEmpty(selectedCategoryIds))
                 return Content("Please select at least one category before excluding products");
 
