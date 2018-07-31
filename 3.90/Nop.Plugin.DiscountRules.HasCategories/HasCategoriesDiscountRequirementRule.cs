@@ -40,6 +40,7 @@ namespace Nop.Plugin.DiscountRules.HasCategories
             var productQuantityMin = _settingService.GetSettingByKey<int>(string.Format("DiscountRequirement.ProductQuantityMin-{0}", request.DiscountRequirementId));
             var productQuantityMax = _settingService.GetSettingByKey<int>(string.Format("DiscountRequirement.ProductQuantityMax-{0}", request.DiscountRequirementId));
             var restrictedCategoryIds = _settingService.GetSettingByKey<string>(string.Format("DiscountRequirement.RestrictedCategoryIds-{0}", request.DiscountRequirementId));
+            var excludedProductIds = _settingService.GetSettingByKey<string>(string.Format("DiscountRequirement.ExcludedProductIds-{0}", request.DiscountRequirementId));
 
             if (string.IsNullOrWhiteSpace(restrictedCategoryIds))
                 return result;
@@ -57,6 +58,11 @@ namespace Nop.Plugin.DiscountRules.HasCategories
                 .ToList();
             if (!restrictedCategories.Any())
                 return result;
+
+            var excludedProducts = (excludedProductIds ?? String.Empty)
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .ToList();
 
             //group products in the cart by product ID
             //it could be the same product with distinct product attributes
@@ -76,24 +82,26 @@ namespace Nop.Plugin.DiscountRules.HasCategories
 
             foreach (var sci in cart)
             {
-                productCategoryIds.TryGetValue(sci.ProductId, out int[] categories);
-
-                if (categories != null && categories.Length > 0)
+                if (excludedProducts.Any(id => sci.ProductId.ToString() == id) == false)
                 {
-                    var isProductInRestrictedCategory = false;
-                    for (int i = 0; i < categories.Length; i++)
+                    productCategoryIds.TryGetValue(sci.ProductId, out int[] categories);
+
+                    if (categories != null && categories.Length > 0)
                     {
-                        if (isProductInRestrictedCategory == false &&
-                            restrictedCategories.Any(id => id == categories[i].ToString()))
+                        var isProductInRestrictedCategory = false;
+                        for (int i = 0; i < categories.Length; i++)
                         {
-                            totalQuantity += sci.TotalQuantity;
-                            isProductInRestrictedCategory = true;
-                            if (totalQuantity > productQuantityMax)
-                                return result;
+                            if (isProductInRestrictedCategory == false &&
+                                restrictedCategories.Any(id => id == categories[i].ToString()))
+                            {
+                                totalQuantity += sci.TotalQuantity;
+                                isProductInRestrictedCategory = true;
+                                if (totalQuantity > productQuantityMax)
+                                    return result;
+                            }
                         }
                     }
-                    
-                }                
+                }              
             }
 
             result.IsValid = totalQuantity >= productQuantityMin && totalQuantity <= productQuantityMax;
@@ -120,6 +128,8 @@ namespace Nop.Plugin.DiscountRules.HasCategories
             //locales
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Categories", "Categories");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Categories.Hint", "The comma-separated list of category identifiers (e.g. 77, 123, 156). Quantity and range aren't applicable here. You can find a category ID on its details page.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.ExcludedProducts", "Excluded Products");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.ExcludedProducts.Hint", "The comma-separated list of excluded product identifiers (e.g. 77, 123, 156). Quantity and range aren't applicable here. You can find a product ID on its details page.");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Quantity.Min", "Minimum quantity");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Quantity.Min.Hint", "Discount will be applied if cart contains more products in selected categories than the defined value here. Minimum quantity should be greater than zero.");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Quantity.Max", "Maximum quantity");
@@ -127,9 +137,15 @@ namespace Nop.Plugin.DiscountRules.HasCategories
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Multiple.Selected", "{0} categories selected");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Single.Selected", "One category selected");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Not.Selected", "No categories selected");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.AddNew", "Add category");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Multiple.Excluded", "{0} products excluded");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Single.Excluded", "One product excluded");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Not.Excluded", "No products excluded");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.AddCategory", "Add category");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.ExcludeProduct", "Exclude product");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Choose", "Choose");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.ViewSelectedCategories", "View Selected Categories");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.ViewExcludedProducts", "View Excluded Products");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasCategories.Error.SelectCategory", "Please select at least one category before excluding products");
             base.Install();
         }
 
@@ -138,6 +154,8 @@ namespace Nop.Plugin.DiscountRules.HasCategories
             //locales
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Categories");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Categories.Hint");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.ExcludedProducts");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.ExcludedProducts.Hint");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Quantity.Min");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Quantity.Min.Hint");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Fields.Quantity.Max");
@@ -145,9 +163,15 @@ namespace Nop.Plugin.DiscountRules.HasCategories
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Multiple.Selected");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Single.Selected");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Not.Selected");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.AddNew");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Multiple.Excluded");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Single.Excluded");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Not.Excluded");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.AddCategory");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.ExcludeProduct");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Choose");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.ViewSelectedCategories");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.ViewExcludedProducts");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasCategories.Error.SelectCategory");
             base.Uninstall();
         }
     }

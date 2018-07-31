@@ -1,7 +1,7 @@
 ﻿@{
     Layout = "~/Administration/Views/Shared/_AdminPopupLayout.cshtml";
 }
-@model Nop.Plugin.DiscountRules.HasCategories.Models.RequirementModel.AddCategoryModel
+@model Nop.Plugin.DiscountRules.HasCategories.Models.RequirementModel.AddProductModel
 @using Nop.Core.Infrastructure;
 @using Nop.Web.Framework;
 @{
@@ -19,9 +19,9 @@
         </h1>
         <div class="pull-right">
             <a href="javascript:void(0)" id="js-selected-item-count"
-               data-text-multiple-selected="@T("Plugins.DiscountRules.HasCategories.Multiple.Selected")"
-               data-text-single-selected="@T("Plugins.DiscountRules.HasCategories.Single.Selected")"
-               data-text-not-selected="@T("Plugins.DiscountRules.HasCategories.Not.Selected")">
+               data-text-multiple-excluded="@T("Plugins.DiscountRules.HasCategories.Multiple.Excluded")"
+               data-text-single-excluded="@T("Plugins.DiscountRules.HasCategories.Single.Excluded")"
+               data-text-not-excluded="@T("Plugins.DiscountRules.HasCategories.Not.Excluded")">
                 <span></span>
                 <i class="fa fa-close hidden"></i>
             </a>
@@ -36,10 +36,26 @@
                             <div class="col-sm-6">
                                 <div class="form-group">
                                     <div class="col-sm-5">
-                                        @Html.NopLabelFor(model => model.SearchCategoryName)
+                                        @Html.NopLabelFor(model => model.SearchProductName)
                                     </div>
                                     <div class="col-sm-7">
-                                        @Html.NopEditorFor(model => model.SearchCategoryName)
+                                        @Html.NopEditorFor(model => model.SearchProductName)
+                                    </div>
+                                </div>
+                                <div class="form-group" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                    <div class="col-sm-5">
+                                        @Html.NopLabelFor(model => model.SearchCategoryId)
+                                    </div>
+                                    <div class="col-sm-7">
+                                        @Html.NopDropDownList("SearchCategoryId", Model.AvailableCategories)
+                                    </div>
+                                </div>
+                                <div class="form-group" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                    <div class="col-sm-5">
+                                        @Html.NopLabelFor(model => model.SearchVendorId)
+                                    </div>
+                                    <div class="col-sm-7">
+                                        @Html.NopDropDownList("SearchVendorId", Model.AvailableVendors)
                                     </div>
                                 </div>
                             </div>
@@ -50,6 +66,22 @@
                                     </div>
                                     <div class="col-sm-7">
                                         @Html.NopDropDownList("SearchStoreId", Model.AvailableStores)
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-5">
+                                        @Html.NopLabelFor(model => model.SearchProductTypeId)
+                                    </div>
+                                    <div class="col-sm-7">
+                                        @Html.NopDropDownList("SearchProductTypeId", Model.AvailableProductTypes)
+                                    </div>
+                                </div>
+                                <div class="form-group" @(Model.AvailableManufacturers.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                    <div class="col-sm-5">
+                                        @Html.NopLabelFor(model => model.SearchManufacturerId)
+                                    </div>
+                                    <div class="col-sm-7">
+                                        @Html.NopDropDownList("SearchManufacturerId", Model.AvailableManufacturers)
                                     </div>
                                 </div>
                             </div>
@@ -84,16 +116,21 @@
             var $doc = $(win.document);
 
             var popupGridPageSize = @popupGridPageSize;
-            var selectorSearchCategoryNameInput = '#@Html.FieldIdFor(model => model.SearchCategoryName)';
+            var selectorSearchProductNameInput = '#@Html.FieldIdFor(model => model.SearchProductName)';
+            var selectorSearchCategoryIdInput = '#@Html.FieldIdFor(model => model.SearchCategoryId)';
+            var selectorSearchManufacturerIdInput = '#@Html.FieldIdFor(model => model.SearchManufacturerId)';
             var selectorSearchStoreIdInput = '#@Html.FieldIdFor(model => model.SearchStoreId)';
+            var selectorSearchVendorIdInput = '#@Html.FieldIdFor(model => model.SearchVendorId)';
+            var selectorSearchProductTypeInput = '#@Html.FieldIdFor(model => model.SearchProductTypeId)';
 
             var qsParamItemIds = '@(Context.Request.QueryString["itemIds"])';
             var qsParamItemIdsInput = '@(Context.Request.QueryString["itemIdsInput"])';
             var qsParamRefreshBtnId = '@(Context.Request.QueryString["refreshBtnId"])';
             var qsParamSelectedView = !!parseInt('@(Context.Request.QueryString["selectedView"])');
+            var qsParamSelectedCategoryIds = '@(Context.Request.QueryString["selectedCategoryIds"])';
 
-            var urlCategoryAddPopupList = '@Html.Raw(Url.Action("CategoryAddPopupList", "DiscountRulesHasCategories"))';
-            var urlCategorySelectedPopupList = '@Html.Raw(Url.Action("CategorySelectedPopupList", "DiscountRulesHasCategories"))';
+            var urlProductExcludePopupList = '@Html.Raw(Url.Action("ProductExcludePopupList", "DiscountRulesHasCategories"))';
+            var urlProductExcludedPopupList = '@Html.Raw(Url.Action("ProductExcludedPopupList", "DiscountRulesHasCategories"))';
 
             // Cache current item ids
             var selectedItemIdsCache = getIdArr(qsParamItemIds);
@@ -121,7 +158,7 @@
                 }
 
                 $itemGrid.kendoGrid(getKendoGridOptions({
-                    url: urlCategoryAddPopupList,
+                    url: urlProductExcludePopupList,
                     data: additionalData,
                     popupGridPageSize: popupGridPageSize,
                     checked: '',
@@ -155,7 +192,7 @@
 
                         // Initialize selected items grid
                         $itemSelectedGrid.kendoGrid(getKendoGridOptions({
-                            url: urlCategorySelectedPopupList,
+                            url: urlProductExcludedPopupList,
                             data: additionalDataSelected,
                             checked: 'checked',
                             serverPaging: false,
@@ -206,7 +243,7 @@
                 });
 
                 // Fire search after pressing enter
-                $(selectorSearchCategoryNameInput).keydown(function(event) {
+                $(selectorSearchProductNameInput).keydown(function(event) {
                     if (event.keyCode == 13) {
                         $searchBtn.click();
                         return false;
@@ -282,17 +319,17 @@
                 var text = null;
                 var elItemCount = $itemCount[0];
                 if (itemCount === 0) {
-                    text = $itemCount.data('text-not-selected');
+                    text = $itemCount.data('text-not-excluded');
                     if ($itemCount.find('i.hidden').length > 0) {
                         cursor = 'default';
                         color = '#333';
                     }
                 }
                 else if (itemCount === 1) {
-                    text = $itemCount.data('text-single-selected');
+                    text = $itemCount.data('text-single-excluded');
                 }
                 else {
-                    text = $itemCount.data('text-multiple-selected').replace('{0}', itemCount);
+                    text = $itemCount.data('text-multiple-excluded').replace('{0}', itemCount);
                 }
                 elItemCount.style.cursor = cursor;
                 elItemCount.style.color = color;
@@ -302,8 +339,13 @@
 
             function additionalData() {
                 var data = {
-                    SearchCategoryName: $(selectorSearchCategoryNameInput).val(),
+                    SearchProductName: $(selectorSearchProductNameInput).val(),
+                    SearchCategoryId: $(selectorSearchCategoryIdInput).val(),
+                    SearchManufacturerId: $(selectorSearchManufacturerIdInput).val(),
                     SearchStoreId: $(selectorSearchStoreIdInput).val(),
+                    SearchVendorId: $(selectorSearchVendorIdInput).val(),
+                    SearchProductTypeId: $(selectorSearchProductTypeInput).val(),
+                    SearchSelectedCategoryIds: qsParamSelectedCategoryIds
                 };
                 addAntiForgeryToken(data);
                 return data;
@@ -311,7 +353,7 @@
 
             function additionalDataSelected() {
                 var data = {
-                    selectedCategoryIds: selectedItemIdsCache.join(',')
+                    selectedProductIds: selectedItemIdsCache.join(',')
                 };
                 addAntiForgeryToken(data);
                 return data;
@@ -351,11 +393,11 @@
                         attributes: { style: 'text-align:center' },
                         width: 50
                     }, {
-                        field: 'Breadcrumb',
-                        title: '@T("Admin.Catalog.Categories.Fields.Name")'
+                        field: 'Name',
+                        title: '@T("Admin.Catalog.Products.Fields.Name")'
                     }, {
                         field: 'Published',
-                        title: '@T("Admin.Catalog.Categories.Fields.Published")',
+                        title: '@T("Admin.Catalog.Products.Fields.Published")',
                         width: 100,
                         headerAttributes: { style: 'text-align:center' },
                         attributes: { style: 'text-align:center' },
