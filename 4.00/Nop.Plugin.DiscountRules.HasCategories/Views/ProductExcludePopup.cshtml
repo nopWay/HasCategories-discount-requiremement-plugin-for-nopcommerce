@@ -1,7 +1,7 @@
 ﻿@{
     Layout = "~/Areas/Admin/Views/Shared/_AdminPopupLayout.cshtml";
 }
-@model Nop.Plugin.DiscountRules.HasCategories.Models.RequirementModel.AddCategoryModel
+@model Nop.Plugin.DiscountRules.HasCategories.Models.RequirementModel.AddProductModel
 @using Nop.Core.Infrastructure;
 
 @{
@@ -11,15 +11,16 @@
     ViewBag.Title = T("Plugins.DiscountRules.HasCategories.Choose").Text;
 }
 <form asp-controller="DiscountRulesHasCategories" asp-action="Configure" method="post">
+    @Html.AntiForgeryToken()
     <div class="content-header clearfix">
         <h1 class="pull-left">
             @T("Plugins.DiscountRules.HasCategories.Choose")
         </h1>
         <div class="pull-right">
             <a href="javascript:void(0)" id="js-selected-item-count"
-               data-text-multiple-selected="@T("Plugins.DiscountRules.HasCategories.Multiple.Selected")"
-               data-text-single-selected="@T("Plugins.DiscountRules.HasCategories.Single.Selected")"
-               data-text-not-selected="@T("Plugins.DiscountRules.HasCategories.Not.Selected")">
+               data-text-multiple-excluded="@T("Plugins.DiscountRules.HasCategories.Multiple.Excluded")"
+               data-text-single-excluded="@T("Plugins.DiscountRules.HasCategories.Single.Excluded")"
+               data-text-not-excluded="@T("Plugins.DiscountRules.HasCategories.Not.Excluded")">
                 <span></span>
                 <i class="fa fa-close hidden"></i>
             </a>
@@ -34,10 +35,26 @@
                             <div class="col-sm-6">
                                 <div class="form-group">
                                     <div class="col-sm-5">
-                                        <nop-label asp-for="SearchCategoryName" />
+                                        <nop-label asp-for="SearchProductName" />
                                     </div>
                                     <div class="col-sm-7">
-                                        <nop-editor asp-for="SearchCategoryName" />
+                                        <nop-editor asp-for="SearchProductName" />
+                                    </div>
+                                </div>
+                                <div class="form-group" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                    <div class="col-sm-5">
+                                        <nop-label asp-for="SearchCategoryId" />
+                                    </div>
+                                    <div class="col-sm-7">
+                                        <nop-select asp-for="SearchCategoryId" asp-items="Model.AvailableCategories" />
+                                    </div>
+                                </div>
+                                <div class="form-group" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                    <div class="col-sm-5">
+                                        <nop-label asp-for="SearchVendorId" />
+                                    </div>
+                                    <div class="col-sm-7">
+                                        <nop-select asp-for="SearchVendorId" asp-items="Model.AvailableVendors" />
                                     </div>
                                 </div>
                             </div>
@@ -50,6 +67,22 @@
                                         <nop-select asp-for="SearchStoreId" asp-items="Model.AvailableStores" />
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <div class="col-sm-5">
+                                        <nop-label asp-for="SearchProductTypeId" />
+                                    </div>
+                                    <div class="col-sm-7">
+                                        <nop-select asp-for="SearchProductTypeId" asp-items="Model.AvailableProductTypes" />
+                                    </div>
+                                </div>
+                                <div class="form-group" @(Model.AvailableManufacturers.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                    <div class="col-sm-5">
+                                        <nop-label asp-for="SearchManufacturerId" />
+                                    </div>
+                                    <div class="col-sm-7">
+                                        <nop-select asp-for="SearchManufacturerId" asp-items="Model.AvailableManufacturers" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -59,6 +92,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div id="js-item-grid" class="hidden"></div>
@@ -76,22 +110,26 @@
     </div>
 
     <script type="text/javascript">
-
         (function (win, $) {
 
             var $doc = $(win.document);
 
             var popupGridPageSize = @popupGridPageSize;
-            var selectorSearchCategoryNameInput = '#@Html.IdFor(model => model.SearchCategoryName)';
+            var selectorSearchProductNameInput = '#@Html.IdFor(model => model.SearchProductName)';
+            var selectorSearchCategoryIdInput = '#@Html.IdFor(model => model.SearchCategoryId)';
+            var selectorSearchManufacturerIdInput = '#@Html.IdFor(model => model.SearchManufacturerId)';
             var selectorSearchStoreIdInput = '#@Html.IdFor(model => model.SearchStoreId)';
+            var selectorSearchVendorIdInput = '#@Html.IdFor(model => model.SearchVendorId)';
+            var selectorSearchProductTypeInput = '#@Html.IdFor(model => model.SearchProductTypeId)';
 
             var qsParamItemIds = '@(Context.Request.Query["itemIds"])';
             var qsParamItemIdsInput = '@(Context.Request.Query["itemIdsInput"])';
             var qsParamRefreshBtnId = '@(Context.Request.Query["refreshBtnId"])';
             var qsParamSelectedView = !!parseInt('@(Context.Request.Query["selectedView"])');
+            var qsParamSelectedCategoryIds = '@(Context.Request.Query["selectedCategoryIds"])';
 
-            var urlCategoryAddPopupList = '@Html.Raw(Url.Action("CategoryAddPopupList", "DiscountRulesHasCategories"))';
-            var urlCategorySelectedPopupList = '@Html.Raw(Url.Action("CategorySelectedPopupList", "DiscountRulesHasCategories"))';
+            var urlProductExcludePopupList = '@Html.Raw(Url.Action("ProductExcludePopupList", "DiscountRulesHasCategories"))';
+            var urlProductExcludedPopupList = '@Html.Raw(Url.Action("ProductExcludedPopupList", "DiscountRulesHasCategories"))';
 
             // Cache current item ids
             var selectedItemIdsCache = getIdArr(qsParamItemIds);
@@ -118,9 +156,8 @@
                     $searchPanel.removeClass('hidden');
                 }
 
-                // Initialize item grid
                 $itemGrid.kendoGrid(getKendoGridOptions({
-                    url: urlCategoryAddPopupList,
+                    url: urlProductExcludePopupList,
                     data: additionalData,
                     popupGridPageSize: popupGridPageSize,
                     checked: '',
@@ -154,7 +191,7 @@
 
                         // Initialize selected items grid
                         $itemSelectedGrid.kendoGrid(getKendoGridOptions({
-                            url: urlCategorySelectedPopupList,
+                            url: urlProductExcludedPopupList,
                             data: additionalDataSelected,
                             checked: 'checked',
                             serverPaging: false,
@@ -164,7 +201,7 @@
                                 this.cancelChanges();
                                 kendo.ui.progress(itemGrid.element, false);
                             },
-                            dataBound: function (arg) {
+                            dataBound: function(arg) {
                                 // Show selected items grid
                                 kendo.ui.progress(itemGrid.element, false);
                                 $itemSelectedGrid.removeClass('hidden');
@@ -205,7 +242,7 @@
                 });
 
                 // Fire search after pressing enter
-                $(selectorSearchCategoryNameInput).keydown(function(event) {
+                $(selectorSearchProductNameInput).keydown(function(event) {
                     if (event.keyCode == 13) {
                         $searchBtn.click();
                         return false;
@@ -281,17 +318,17 @@
                 var text = null;
                 var elItemCount = $itemCount[0];
                 if (itemCount === 0) {
-                    text = $itemCount.data('text-not-selected');
+                    text = $itemCount.data('text-not-excluded');
                     if ($itemCount.find('i.hidden').length > 0) {
                         cursor = 'default';
                         color = '#333';
                     }
                 }
                 else if (itemCount === 1) {
-                    text = $itemCount.data('text-single-selected');
+                    text = $itemCount.data('text-single-excluded');
                 }
                 else {
-                    text = $itemCount.data('text-multiple-selected').replace('{0}', itemCount);
+                    text = $itemCount.data('text-multiple-excluded').replace('{0}', itemCount);
                 }
                 elItemCount.style.cursor = cursor;
                 elItemCount.style.color = color;
@@ -301,8 +338,13 @@
 
             function additionalData() {
                 var data = {
-                    SearchCategoryName: $(selectorSearchCategoryNameInput).val(),
+                    SearchProductName: $(selectorSearchProductNameInput).val(),
+                    SearchCategoryId: $(selectorSearchCategoryIdInput).val(),
+                    SearchManufacturerId: $(selectorSearchManufacturerIdInput).val(),
                     SearchStoreId: $(selectorSearchStoreIdInput).val(),
+                    SearchVendorId: $(selectorSearchVendorIdInput).val(),
+                    SearchProductTypeId: $(selectorSearchProductTypeInput).val(),
+                    SearchSelectedCategoryIds: qsParamSelectedCategoryIds
                 };
                 addAntiForgeryToken(data);
                 return data;
@@ -310,7 +352,7 @@
 
             function additionalDataSelected() {
                 var data = {
-                    selectedCategoryIds: selectedItemIdsCache.join(',')
+                    selectedProductIds: selectedItemIdsCache.join(',')
                 };
                 addAntiForgeryToken(data);
                 return data;
@@ -350,11 +392,11 @@
                         attributes: { style: 'text-align:center' },
                         width: 50
                     }, {
-                        field: 'Breadcrumb',
-                        title: '@T("Admin.Catalog.Categories.Fields.Name")'
+                        field: 'Name',
+                        title: '@T("Admin.Catalog.Products.Fields.Name")'
                     }, {
                         field: 'Published',
-                        title: '@T("Admin.Catalog.Categories.Fields.Published")',
+                        title: '@T("Admin.Catalog.Products.Fields.Published")',
                         width: 100,
                         headerAttributes: { style: 'text-align:center' },
                         attributes: { style: 'text-align:center' },
