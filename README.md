@@ -23,7 +23,8 @@ Excluded products that are in the cart will be ignored while checking total quan
 * After creating a discount open "Reqirements" tab
 * Select "Cart must contain certain amount of products in selected categories" as discount requirement type
 * Set minimum and maximum quantities. The total quantity of products belonging selected categories in the cart should be between min and max values in order to this discount to be applied.
-* Select categories. This field accepts a comma-separated list of valid category ids. Please note that you can't set quantity or range values after category ids.
+* Select categories. This field accepts a comma-separated list of valid category ids.
+* Select products to be excluded from categories. This field is optional and accepts a comma-separated list of valid product ids.
 * Save requirement
 
 ### Attributions
