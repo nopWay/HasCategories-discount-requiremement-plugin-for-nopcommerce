@@ -11,6 +11,9 @@ By this way, it's really easy to create discounts like
 
 In addition to the discount requirement, you will get a user friendly category selection window. While selecting categories, you don't need to leave selection window anymore. All of your selections will be kept even if you perform a search or go to another page by using pagination. There is also a summary list that you can see all your selected categories, so that you can quickly deselect unwanted ones.
 
+#### Excluding Products
+Excluded products that are in the cart will be ignored while checking total quantity against predefined range even though they belong one of the selected categories. This feature is available with version 1.10 
+
 ### Installation
 * Download [latest release](https://github.com/nopWay/HasCategories-discount-requiremement-plugin-for-nopcommerce/releases/latest) and copy "DiscountRules.HasCategories" folder to Presentation/Nop.Web/Plugins directory.
 * Go to yourdomain.com/Admin/Plugin/List and click "Reload List of Plugins" button
