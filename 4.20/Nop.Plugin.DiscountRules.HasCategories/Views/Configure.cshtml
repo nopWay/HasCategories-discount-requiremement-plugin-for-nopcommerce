@@ -1,0 +1,228 @@
+﻿@{
+    Layout = "";
+}
+@model RequirementModel
+
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="ProductQuantityMin" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <nop-editor asp-for="ProductQuantityMin" />
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="ProductQuantityMax" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <nop-editor asp-for="ProductQuantityMax" />
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="Categories" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <div class="input-group">
+                <nop-editor asp-for="Categories" />
+                <div class="input-group-btn">
+                    <input type="button"
+                           id="js-open-add-category-popup-btn@(Model.RequirementId)"
+                           value="@T("Plugins.DiscountRules.HasCategories.AddCategory")"
+                           class="btn btn-info"
+                           style="min-width:120px;" />
+                    <input type="button" id="js-refresh-category-btn@(Model.RequirementId)" style="display: none" />
+                </div>
+            </div>
+        </div>
+        <a href="javascript:void(0)" id="js-view-selected-categories-btn@(Model.RequirementId)" class="btn hidden">
+            @T("Plugins.DiscountRules.HasCategories.ViewSelectedCategories")
+        </a>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="ExcludedProducts" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <div class="input-group">
+                <nop-editor asp-for="ExcludedProducts" />
+                <div class="input-group-btn">
+                    <input type="button"
+                           id="js-open-exclude-product-popup-btn@(Model.RequirementId)"
+                           value="@T("Plugins.DiscountRules.HasCategories.ExcludeProduct")"
+                           class="btn btn-info" />
+                    <input type="button" id="js-refresh-product-btn@(Model.RequirementId)" style="display: none" />
+                </div>
+            </div>
+        </div>
+        <a href="javascript:void(0)" id="js-view-excluded-products-btn@(Model.RequirementId)" class="btn hidden">
+            @T("Plugins.DiscountRules.HasCategories.ViewExcludedProducts")
+        </a>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-3 col-md-9">
+        <input type="button" id="js-save-btn@(Model.RequirementId)" class="btn btn-primary" value="@T("Admin.Common.Save")" />
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-3 col-md-9">
+        <div id="js-save-result-message@(Model.RequirementId)" style="display: none;" class="text-green margin-t-5">
+            @T("Admin.Promotions.Discounts.Requirements.Saved")
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    (function (win, $) {
+
+        var $doc = $(win.document);
+
+        var discountId = '@Model.DiscountId';
+        var requirementId = '@Model.RequirementId';
+
+        var selector = {
+            minQuantityInput: '#@Html.IdFor(model => model.ProductQuantityMin)',
+            maxQuantityInput: '#@Html.IdFor(model => model.ProductQuantityMax)',
+            category: {
+                input: '#@Html.IdFor(model => model.Categories)',
+                openPopupBtn: '#js-open-add-category-popup-btn' + requirementId,
+                refreshBtn: '#js-refresh-category-btn' + requirementId,
+                viewBtn: '#js-view-selected-categories-btn' + requirementId
+            },
+            product: {
+                input: '#@Html.IdFor(model => model.ExcludedProducts)',
+                openPopupBtn: '#js-open-exclude-product-popup-btn' + requirementId,
+                refreshBtn: '#js-refresh-product-btn' + requirementId,
+                viewBtn: '#js-view-excluded-products-btn' + requirementId
+            },
+            saveRequirementBtn: '#js-save-btn' + requirementId,
+            saveRequirementResult: '#js-save-result-message' + requirementId
+        };
+
+        var urlConfigure = '@Url.Action("Configure", "DiscountRulesHasCategories")';
+        var urlCategoryAddPopup = '@Url.Action("CategoryAddPopup", "DiscountRulesHasCategories")';
+        var urlProductExcludePopup = '@Url.Action("ProductExcludePopup", "DiscountRulesHasCategories")';
+
+        var errorFailedToSave = '@Html.Raw(JavaScriptEncoder.Default.Encode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))';
+        var errorSelectCategory = '@Html.Raw(JavaScriptEncoder.Default.Encode(T("Plugins.DiscountRules.HasCategories.Error.SelectCategory").Text))';
+
+        $doc.ready(function () {
+
+            // Prepare categories input
+            prepareInput('category', urlCategoryAddPopup);
+
+            // Prepare excluded products input
+            prepareInput('product', urlProductExcludePopup);
+
+            // Save reqirement
+            $(selector.saveRequirementBtn).click(function () {
+                var postData = {
+                    discountId: discountId,
+                    discountRequirementId: requirementId,
+                    categoryIds: $(selector.category.input).val(),
+                    excludedProductIds: $(selector.product.input).val(),
+                    productQuantityMin: parseFloat($(selector.minQuantityInput).val() || 0),
+                    productQuantityMax: parseFloat($(selector.maxQuantityInput).val() || 0)
+                };
+                addAntiForgeryToken(postData);
+
+                $.ajax({
+                    cache: false,
+                    type: 'POST',
+                    url: urlConfigure,
+                    data: postData,
+                    success: function (data) {
+                        if (data.Result) {
+                            $(selector.saveRequirementResult).fadeIn('slow').delay(1000).fadeOut('slow');
+
+                            //notify parent if it's a new requirement
+                            if (requirementId === '0') {
+                                $('#discountRequirementContainer')
+                                    .trigger('nopnewdiscountruleadded', [data.NewRequirementId]);
+                            }
+                        }
+                        else {
+                            alert(data.ErrorMessage);
+                        }
+                    },
+                    error: function () {
+                        alert(error.failedToSave);
+                    }
+                });
+            });
+        });
+
+        function prepareInput(type, urlPopup) {
+
+            var sel = selector[type];
+
+            toggleViewBtn();
+
+            // Toggle "view selected items" button after new item Ids are entered manually
+            $(sel.input)
+                .data('timeout', null)
+                .keyup(function () {
+                    var $this = $(this);
+                    clearTimeout($this.data('timeout'));
+                    $this.data('timeout', setTimeout(toggleViewBtn, 1000));
+                });
+
+            // Refresh button
+            $(sel.refreshBtn).click(toggleViewBtn);
+
+            // Open popup
+            $(sel.openPopupBtn).click(function () {
+                openPopup(false);
+            });
+
+            // Open selected items popup
+            $(sel.viewBtn).click(function () {
+                openPopup(true);
+            });
+
+            // Show / hide view selected items button
+            function toggleViewBtn() {
+                var inputValue = $(sel.input).val();
+                $(sel.viewBtn)[inputValue ? 'removeClass' : 'addClass']('hidden');
+                if (type === 'category') {
+                    if (inputValue) {
+                        $(selector.product.input).removeAttr('disabled');
+                    }
+                    else {
+                        $(selector.product.input).attr('disabled', 'disabled').val('');
+                        $(selector.product.viewBtn).addClass('hidden');
+                    }
+                }
+            }
+
+            function openPopup(showSelectedItems) {
+                var selectedItemIds = $(sel.input).val();
+                var qs = {
+                    refreshBtnId: sel.refreshBtn.replace('#', ''),
+                    itemIdsInput: sel.input.replace('#', ''),
+                    selectedItemIds: selectedItemIds.replace(/\s/g, ''),
+                    selectedView: showSelectedItems ? 1 : 0
+                };
+                if (type === 'product') {
+                    qs.selectedCategoryIds = $(selector.category.input).val();
+                    if (!qs.selectedCategoryIds) {
+                        alert(errorSelectCategory);
+                        return;
+                    }
+                }
+                win.OpenWindow(urlPopup + '?' + $.param(qs), 800, 850, true);
+            }
+        }
+
+    })(this, this.jQuery);
+</script>
