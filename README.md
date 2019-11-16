@@ -31,4 +31,4 @@ Excluded products that are in the cart will be ignored while checking total quan
 * Discount tag icon in the logo by Vectors Market from the Noun Project
 
 ### License
-MIT Copyright (c) 2018 nopWay
+MIT Copyright (c) 2019 nopWay
